@@ -6,7 +6,7 @@ This is an API to manage inventory control and many other features of Purchase S
 
 You'll have to replace the root's password on database.js file in util folder to your current MySQL root's password.
 
-![database.js file](images/database.png)
+![database.js file](images/database.PNG)
 
 Then you can just run the steps bellow to launch the API:
 
