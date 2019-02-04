@@ -18,7 +18,7 @@ npm start
 ## Environment
 
 * Node.js v8.12.0
-* MySQL Community Server 8.0.14
+* MySQL Community Server 5.7
 
 ## Authors
 
