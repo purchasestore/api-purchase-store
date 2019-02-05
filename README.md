@@ -8,6 +8,10 @@ You'll have to replace the root's password on database.js file in util folder to
 
 ![database.js file](images/database.PNG)
 
+Also you need to create the schema in your MySQL instance, because Sequelize (the ORM) only creates the tables.
+
+![database.js file](images/create-schema.png)
+
 Then you can just run the steps bellow to launch the API:
 
 ```

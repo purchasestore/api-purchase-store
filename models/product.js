@@ -22,8 +22,7 @@ const Product = sequelize.define('product', {
     allowNull: false
   },
   imageUrl: Sequelize.STRING,
-  highlight: Sequelize.BOOLEAN,
-  purchasePrice: Sequelize.DOUBLE
+  highlight: Sequelize.BOOLEAN
 });
 
 module.exports = Product;

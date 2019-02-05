@@ -13,6 +13,10 @@ const Supplier = sequelize.define('supplier', {
     type: Sequelize.STRING,
     allowNull: false
   },
+  cnpj: {
+    type: Sequelize.STRING(18),
+    allowNull: true
+  },
   email: {
     type: Sequelize.STRING,
     allowNull: false

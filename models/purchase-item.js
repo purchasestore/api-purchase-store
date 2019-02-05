@@ -2,19 +2,14 @@ const Sequelize = require('sequelize');
 
 const sequelize = require('../util/database');
 
-const Out = sequelize.define('out', {
+const PurchaseItem = sequelize.define('purchaseItem', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true
   },
-  amount: {
-    type: Sequelize.INTEGER,
-    allowNull: false
-  }
-}, {
-  tableName: 'out'
+  quantity: Sequelize.INTEGER
 });
 
-module.exports = Out;
+module.exports = PurchaseItem;
