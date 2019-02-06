@@ -20,18 +20,20 @@ Company.belongsTo(User, {
 });
 User.hasOne(Company);
 Supplier.belongsTo(Company);
+Supplier.hasOne(Purchase);
 Company.hasMany(Supplier);
 Customer.belongsTo(Company);
+Customer.hasOne(Sale);
 Company.hasMany(Customer);
 Purchase.belongsTo(Company);
 Sale.belongsTo(Company);
-Category.hasOne(Product);
+Category.hasMany(Product);
 Product.belongsTo(Company);
 Product.belongsToMany(Purchase, { through: PurchaseItem });
 Product.belongsToMany(Sale, { through: SaleItem });
 
 sequelize
-  // .sync({ force: true })
+//   .sync({ force: true })
   .sync()
   .then(() => app.listen(process.env.PORT || 3000))
   .catch(err => console.log(err));
