@@ -1,5 +1,8 @@
 const express = require('express');
+const graphqlHttp = require('express-graphql');
 
+const graphqlSchema = require('./graphql/schema/index');
+const graphqlResolvers = require('./graphql/resolvers/index');
 const sequelize = require('./util/database');
 const User = require('./models/user');
 const Company = require('./models/company');
@@ -32,8 +35,14 @@ Product.belongsTo(Company);
 Product.belongsToMany(Purchase, { through: PurchaseItem });
 Product.belongsToMany(Sale, { through: SaleItem });
 
+app.use('/graphql', graphqlHttp({
+  schema: graphqlSchema,
+  rootValue: graphqlResolvers,
+  graphiql: true
+}));
+
 sequelize
-//   .sync({ force: true })
+  // .sync({ force: true })
   .sync()
   .then(() => app.listen(process.env.PORT || 3000))
   .catch(err => console.log(err));
