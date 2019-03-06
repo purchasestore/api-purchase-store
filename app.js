@@ -1,5 +1,6 @@
 const express = require('express');
 const graphqlHttp = require('express-graphql');
+const bodyParser = require('body-parser');
 
 const graphqlSchema = require('./graphql/schema/index');
 const graphqlResolvers = require('./graphql/resolvers/index');
@@ -16,6 +17,8 @@ const Category = require('./models/category');
 const Product = require('./models/product');
 
 const app = express();
+
+app.use(bodyParser.json());
 
 Company.belongsTo(User, {
   constraints: true,
@@ -35,11 +38,14 @@ Product.belongsTo(Company);
 Product.belongsToMany(Purchase, { through: PurchaseItem });
 Product.belongsToMany(Sale, { through: SaleItem });
 
-app.use('/graphql', graphqlHttp({
-  schema: graphqlSchema,
-  rootValue: graphqlResolvers,
-  graphiql: true
-}));
+app.use(
+  '/graphql',
+  graphqlHttp({
+    schema: graphqlSchema,
+    rootValue: graphqlResolvers,
+    graphiql: true
+  })
+);
 
 sequelize
   // .sync({ force: true })
