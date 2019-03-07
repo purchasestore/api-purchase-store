@@ -4,7 +4,9 @@ const bodyParser = require('body-parser');
 
 const graphqlSchema = require('./graphql/schema/index');
 const graphqlResolvers = require('./graphql/resolvers/index');
+const auth = require('./middleware/auth');
 const sequelize = require('./util/database');
+
 const User = require('./models/user');
 const Company = require('./models/company');
 const Supplier = require('./models/supplier');
@@ -19,6 +21,7 @@ const Product = require('./models/product');
 const app = express();
 
 app.use(bodyParser.json());
+app.use(auth);
 
 Company.belongsTo(User, {
   constraints: true,

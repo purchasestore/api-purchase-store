@@ -26,20 +26,69 @@ module.exports = {
 
       return {
         ...user.dataValues,
-        createdAt: dateToString(user.dataValues.createdAt),
-        updatedAt: dateToString(user.dataValues.updatedAt),
-        password: null
+        password: null,
+        createdAt: dateToString(user.createdAt),
+        updatedAt: dateToString(user.updatedAt)
       };
     } catch (err) {
       throw err;
     }
   },
-  updateUser: async args => {
-    const email = args.userInput.email;
-    const name = args.userInput.name;
+  updateUser: async ({ name, email }, req) => {
+    const user = req.user;
+
+    if (!user) {
+      throw new Error('Não autenticado.');
+    }
+
+    user.name = name;
+    user.email = email;
 
     try {
-      console.log(req.user);
+      const updatedUser = await user.save();
+      return {
+        ...updatedUser.dataValues,
+        password: null,
+        createdAt: dateToString(updatedUser.createdAt),
+        updatedAt: dateToString(updatedUser.updatedAt)
+      };
+    } catch (err) {
+      throw err;
+    }
+  },
+  updatePassword: async ({ password }, req) => {
+    const user = req.user;
+
+    if (!user) {
+      throw new Error('Não autenticado.');
+    }
+
+    try {
+      const hashedPassowrd = await bcrypt.hash(password, 12);
+
+      user.password = hashedPassowrd;
+
+      const updatedUser = await user.save();
+
+      return {
+        ...updatedUser.dataValues,
+        password: null,
+        createdAt: dateToString(updatedUser.createdAt),
+        updatedAt: dateToString(updatedUser.updatedAt)
+      };
+    } catch (err) {
+      throw err;
+    }
+  },
+  deleteUser: (args, req) => {
+    const user = req.user;
+
+    if (!user) {
+      throw new Error('Não autenticado.');
+    }
+
+    try {
+      return !!user.destroy();
     } catch (err) {
       throw err;
     }

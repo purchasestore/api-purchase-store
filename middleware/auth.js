@@ -6,7 +6,7 @@ module.exports = async (req, res, next) => {
   const authHeader = req.get('Authorization');
 
   if (!authHeader) {
-    req.isAuth = false;
+    req.user = undefined;
     return next();
   }
 
@@ -16,21 +16,20 @@ module.exports = async (req, res, next) => {
   try {
     decodedToken = jwt.verify(token, 'lifeisstrange');
   } catch (err) {
-    req.isAuth = false;
+    req.user = undefined;
     return next();
   }
 
   if (!decodedToken) {
-    req.isAuth = false;
+    req.user = undefined;
     return next();
   }
 
   try {
     req.user = await User.findByPk(decodedToken.userId);
-    req.isAuth = true;
     next();
   } catch (err) {
-    req.isAuth = false;
+    req.user = undefined;
     return next();
   }
 };

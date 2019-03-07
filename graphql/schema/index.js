@@ -187,7 +187,8 @@ module.exports = buildSchema(`
 
   type RootMutation {
     createUser(userInput: UserInput): User!
-    updateUser(userInput: UserInput): User!
+    updateUser(name: String!, email: String!): User!
+    updatePassword(password: String!): User!
     deleteUser: Boolean!
     createCompany(companyInput: CompanyInput): Company!
     updateCompany(id: ID!, companyInput: CompanyInput): Company!

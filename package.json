@@ -6,7 +6,7 @@
   "scripts": {
     "start": "nodemon app"
   },
-  "author": "",
+  "author": "Matheus Valandro <msvalandro@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^3.0.4",
@@ -20,5 +20,6 @@
   },
   "devDependencies": {
     "nodemon": "^1.18.9"
-  }
+  },
+  "repository": "https://github.com/purchasestore/api-purchase-store.git"
 }
