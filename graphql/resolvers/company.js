@@ -21,7 +21,7 @@ module.exports = {
       const existingCompany = await Company.findOne({ where: { cnpj: cnpj } });
 
       if (existingCompany) {
-        throw new Error('Empresa com CNPJ inserido já existe.');
+        throw new Error('Empresa com CNPJ informado já existe.');
       }
 
       const company = await Company.create({
@@ -67,7 +67,7 @@ module.exports = {
       });
 
       if (existingCompany) {
-        throw new Error('Empresa com CNPJ inserido já existe.');
+        throw new Error('Empresa com CNPJ informado já existe.');
       }
 
       company.name = name;

@@ -1,9 +1,11 @@
 const authResolver = require('./auth');
 const companyResolver = require('./company');
+const supplierResolver = require('./supplier');
 
 const rootResolver = {
   ...authResolver,
-  ...companyResolver
+  ...companyResolver,
+  ...supplierResolver
 };
 
 module.exports = rootResolver;

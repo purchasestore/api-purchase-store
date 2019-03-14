@@ -134,6 +134,7 @@ module.exports = buildSchema(`
     state: String!
     landmark: String
     note: String
+    company: String
   }
 
   input CustomerInput {
@@ -170,8 +171,8 @@ module.exports = buildSchema(`
 
   type RootQuery {
     company(id: ID!): Company!
-    suppliers: [Supplier!]!
-    supplier(id: ID!): Supplier!
+    suppliers(companyId: ID!): [Supplier!]!
+    supplier(id: ID!, companyId: ID!): Supplier!
     customers: [Customer!]!
     customer(id: ID!): Customer!
     categories: [Category!]!
@@ -195,7 +196,7 @@ module.exports = buildSchema(`
     deleteCompany(id: ID!): Boolean!
     createSupplier(supplierInput: SupplierInput): Supplier!
     updateSupplier(id: ID!, supplierInput: SupplierInput): Supplier!
-    deleteSupplier(id: ID!): Boolean!
+    deleteSupplier(id: ID!, companyId: ID!): Boolean!
     createCustomer(customerInput: CustomerInput): Customer!
     updateCustomer(id: ID!, customerInput: CustomerInput): Customer!
     deleteCustomer(id: ID!): Boolean!
