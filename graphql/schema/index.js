@@ -199,7 +199,7 @@ module.exports = buildSchema(`
     deleteSupplier(id: ID!, companyId: ID!): Boolean!
     createCustomer(customerInput: CustomerInput): Customer!
     updateCustomer(id: ID!, customerInput: CustomerInput): Customer!
-    deleteCustomer(id: ID!): Boolean!
+    deleteCustomer(id: ID!, companyId: ID!): Boolean!
     createCategory(categoryInput: CategoryInput): Category!
     updateCategory(id: ID!, categoryInput: CategoryInput): Category!
     deleteCategory(id: ID!): Boolean!
