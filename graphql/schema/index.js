@@ -134,17 +134,19 @@ module.exports = buildSchema(`
     state: String!
     landmark: String
     note: String
-    company: String
+    company: String!
   }
 
   input CustomerInput {
     name: String!
     email: String!
     cellphone: String!
+    company: String!
   }
 
   input CategoryInput {
     name: String!
+    company: String!
   }
 
   input ProductInput {
@@ -154,11 +156,18 @@ module.exports = buildSchema(`
     imageUrl: String
     highlight: Boolean
     category: String!
+    company: String!
   }
 
   input PurchaseInput {
-    value: Float!
+    items: [PurchaseItemInput!]!
     supplier: String!
+    company: String!
+  }
+
+  input PurchaseItemInput {
+    quantity: Int!
+    product: String!
   }
 
   input SaleInput {
@@ -173,16 +182,16 @@ module.exports = buildSchema(`
     company(id: ID!): Company!
     suppliers(companyId: ID!): [Supplier!]!
     supplier(id: ID!, companyId: ID!): Supplier!
-    customers: [Customer!]!
-    customer(id: ID!): Customer!
-    categories: [Category!]!
-    category(id: ID!): Category!
-    products: [Product!]!
-    product(id: ID!): Product!
-    purchases: [Purchase!]!
-    purchase(id: ID!): Purchase!
-    sales: [Sale!]!
-    sale(id: ID!): Sale!
+    customers(companyId: ID!): [Customer!]!
+    customer(id: ID!, companyId: ID!): Customer!
+    categories(companyId: ID!): [Category!]!
+    category(id: ID!, companyId: ID!): Category!
+    products(companyId: ID!): [Product!]!
+    product(id: ID!, companyId: ID!): Product!
+    purchases(companyId: ID!): [Purchase!]!
+    purchase(id: ID!, companyId: ID!): Purchase!
+    sales(companyId: ID!): [Sale!]!
+    sale(id: ID!, companyId: ID!): Sale!
     login(email: String!, password: String!): AuthData!
   }
 
@@ -202,16 +211,16 @@ module.exports = buildSchema(`
     deleteCustomer(id: ID!, companyId: ID!): Boolean!
     createCategory(categoryInput: CategoryInput): Category!
     updateCategory(id: ID!, categoryInput: CategoryInput): Category!
-    deleteCategory(id: ID!): Boolean!
+    deleteCategory(id: ID!, companyId: ID!): Boolean!
     createProduct(productInput: ProductInput): Product!
     updateProduct(id: ID!, productInput: ProductInput): Product!
-    deleteProduct(id: ID!): Boolean!
+    deleteProduct(id: ID!, companyId: ID!): Boolean!
     createPurchase(purchaseInput: PurchaseInput): Purchase!
     updatePurchase(id: ID!, purchaseInput: PurchaseInput): Purchase!
-    deletePurchase(id: ID!): Boolean!
+    deletePurchase(id: ID!, companyId: ID!): Boolean!
     createSale(saleInput: SaleInput): Sale!
     updateSale(id: ID!, saleInput: SaleInput): Sale!
-    deleteSale(id: ID!): Boolean!
+    deleteSale(id: ID!, companyId: ID!): Boolean!
   }
 
   schema {

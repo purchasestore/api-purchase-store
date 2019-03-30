@@ -1,14 +1,12 @@
-const Company = require('../../models/company');
-const Customer = require('../../models/customer');
+const Company = require('../../models/category');
+const Category = require('../../models/category');
 const { dateToString } = require('../../helpers/date');
 const { handleCompany } = require('../../helpers/company');
 
 module.exports = {
-  createCustomer: async ({ customerInput }, req) => {
-    const name = customerInput.name;
-    const email = customerInput.email;
-    const cellphone = customerInput.cellphone;
-    const companyId = customerInput.company;
+  createCategory: async ({ categoryInput }, req) => {
+    const name = categoryInput.name;
+    const companyId = categoryInput.company;
     const user = req.user;
 
     if (!user) {
@@ -26,38 +24,32 @@ module.exports = {
         throw new Error('Não autorizado.');
       }
 
-      const customer = await Customer.create({
+      const category = await Category.create({
         name: name,
-        email: email,
-        cellphone: cellphone,
         companyId: companyId
       });
 
       return {
-        ...customer.dataValues,
-        createdAt: dateToString(customer.createdAt),
-        updatedAt: dateToString(customer.updatedAt),
+        ...category.dataValues,
+        createdAt: dateToString(category.createdAt),
+        updatedAt: dateToString(category.updatedAt),
         company: handleCompany(company)
       };
     } catch (err) {
       throw err;
     }
   },
-  updateCustomer: async ({ id, customerInput }, req) => {
-    const name = customerInput.name;
-    const email = customerInput.email;
-    const cellphone = customerInput.cellphone;
-    const companyId = customerInput.company;
-    const user = req.user;
+  updateCategory: async ({ id, categoryInput }, req) => {
+    const name = categoryInput.name;
+    const companyId = categoryInput.company;
+    const user = req;
 
     if (!user) {
       throw new Error('Não autenticado.');
     }
 
     try {
-      const company = await Company.findOne({
-        where: { id: companyId }
-      });
+      const company = await Company.findOne({ where: { id: companyId } });
 
       if (!company) {
         throw new Error('Empresa inválida.');
@@ -67,64 +59,29 @@ module.exports = {
         throw new Error('Não autorizado.');
       }
 
-      const customer = await Customer.findOne({
-        where: { id: id, companyId: company.id }
+      const category = await Category.findOne({
+        where: { id: id, companyId: companyId }
       });
 
-      if (!customer) {
-        throw new Error('Cliente não encontrado.');
+      if (!category) {
+        throw new Error('Categoria não encontrada.');
       }
 
-      customer.name = name;
-      customer.email = email;
-      customer.cellphone = cellphone;
+      category.name = name;
 
-      const updatedCustomer = await customer.save();
+      const updatedCategory = await category.save();
 
       return {
-        ...updatedCustomer.dataValues,
-        createdAt: dateToString(updatedCustomer.createdAt),
-        updatedAt: dateToString(updatedCustomer.updatedAt),
+        ...updatedCategory.dataValues,
+        createdAt: dateToString(updatedCategory.createdAt),
+        updatedAt: dateToString(updatedCategory.updatedAt),
         company: handleCompany(company)
       };
     } catch (err) {
       throw err;
     }
   },
-  deleteCustomer: async ({ id, companyId }, req) => {
-    const user = req.user;
-
-    if (!user) {
-      throw new Error('Não autenticado.');
-    }
-
-    try {
-      const company = await Company.findOne({
-        where: { id: companyId }
-      });
-
-      if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
-      }
-
-      const customer = await Customer.findOne({
-        where: { id: id, companyId: company.id }
-      });
-
-      if (!customer) {
-        throw new Error('Cliente não encontrado.');
-      }
-
-      return !!customer.destroy();
-    } catch (err) {
-      throw err;
-    }
-  },
-  customers: async ({ companyId }, req) => {
+  deleteCategory: async ({ id, companyId }, req) => {
     const user = req.user;
 
     if (!user) {
@@ -142,21 +99,52 @@ module.exports = {
         throw new Error('Não autorizado.');
       }
 
-      const customers = await Customers.findAll({
+      const category = await Category.findOne({
+        where: { id: id, companyId: company.id }
+      });
+
+      if (!category) {
+        throw new Error('Categoria não encontrada.');
+      }
+
+      return !!category.destroy();
+    } catch (err) {
+      throw err;
+    }
+  },
+  categories: async ({ companyId }, req) => {
+    const user = req.user;
+
+    if (!user) {
+      throw new Error('Não autenticado.');
+    }
+
+    try {
+      const company = await Company.findOne({ where: { id: companyId } });
+
+      if (!company) {
+        throw new Error('Empresa inválida.');
+      }
+
+      if (company.userId !== user.id) {
+        throw new Error('Não autorizado.');
+      }
+
+      const categories = await Category.findAll({
         where: { companyId: company.id }
       });
 
-      return customers.map(customer => ({
-        ...customer.dataValues,
-        createdAt: dateToString(customer.createdAt),
-        updatedAt: dateToString(customer.updatedAt),
+      return categories.map(category => ({
+        ...category.dataValues,
+        createdAt: dateToString(category.createdAt),
+        updatedAt: dateToString(category.updatedAt),
         company: handleCompany(company)
       }));
     } catch (err) {
       throw err;
     }
   },
-  customer: async ({ id, companyId }, req) => {
+  category: async ({ id, companyId }, req) => {
     const user = req.user;
 
     if (!user) {
@@ -174,18 +162,18 @@ module.exports = {
         throw new Error('Não autorizado.');
       }
 
-      const customer = await Customer.findOne({
+      const category = await Category.findOne({
         where: { id: id, companyId: company.id }
       });
 
-      if (!customer) {
-        throw new Error('Cliente não encontrado.');
+      if (!category) {
+        throw new Error('Categoria não encontrada.');
       }
 
       return {
-        ...customer.dataValues,
-        createdAt: dateToString(customer.createdAt),
-        updatedAt: dateToString(customer.updatedAt),
+        ...category.dataValues,
+        createdAt: dateToString(category.createdAt),
+        updatedAt: dateToString(category.updatedAt),
         company: handleCompany(company)
       };
     } catch (err) {

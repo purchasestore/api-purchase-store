@@ -37,9 +37,10 @@ Company.hasMany(Customer);
 Purchase.belongsTo(Company);
 Sale.belongsTo(Company);
 Category.hasMany(Product);
+Category.belongsTo(Company);
 Product.belongsTo(Company);
-Product.belongsToMany(Purchase, { through: PurchaseItem });
-Product.belongsToMany(Sale, { through: SaleItem });
+Product.belongsToMany(Purchase, { through: PurchaseItem, onDelete: 'CASCADE' });
+Product.belongsToMany(Sale, { through: SaleItem, onDelete: 'CASCADE' });
 
 app.use(
   '/graphql',
