@@ -4,6 +4,7 @@ module.exports = buildSchema(`
   type User {
     id: ID!
     name: String!
+    lastname: String!
     email: String!
     password: String
     createdAt: String!
@@ -51,6 +52,7 @@ module.exports = buildSchema(`
     name: String!
     createdAt: String!
     updatedAt: String!
+    company: Company!
   }
 
   type Product {
@@ -114,6 +116,7 @@ module.exports = buildSchema(`
 
   input UserInput {
     name: String!
+    lastname: String!
     email: String!
     password: String!
   }
@@ -171,11 +174,18 @@ module.exports = buildSchema(`
   }
 
   input SaleInput {
-    value: Float!
+    items: [SaleItemInput!]!
     discount: Float!
+    percentage: Float!
     online: Boolean!
     disclosure: Boolean!
     customer: String!
+    company: String!
+  }
+
+  input SaleItemInput {
+    quantity: Int!
+    product: String!
   }
 
   type RootQuery {
@@ -197,7 +207,8 @@ module.exports = buildSchema(`
 
   type RootMutation {
     createUser(userInput: UserInput): User!
-    updateUser(name: String!, email: String!): User!
+    updateUser(name: String!, lastname: String!): User!
+    updateEmail(email: String!): User!
     updatePassword(password: String!): User!
     deleteUser: Boolean!
     createCompany(companyInput: CompanyInput): Company!

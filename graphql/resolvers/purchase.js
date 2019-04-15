@@ -1,3 +1,5 @@
+const validator = require('validator');
+
 const Purchase = require('../../models/purchase');
 const PurchaseItem = require('../../models/purchase-item');
 const Product = require('../../models/product');
@@ -14,44 +16,60 @@ module.exports = {
     const supplierId = purchaseInput.supplier;
     const companyId = purchaseInput.company;
     const user = req.user;
-    let value;
+    let value = 0;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
-      }
-
-      const supplier = await Supplier.findOne({ where: { id: supplierId } });
+      const supplier = await Supplier.findOne({
+        where: { id: supplierId, companyId: company.id }
+      });
 
       if (!supplier) {
-        throw new Error('Fornecedor inválido.');
+        const error = new Error('Fornecedor inválido.');
+        error.code = 422;
+        throw error;
       }
 
-      if (supplier.companyId !== company.id) {
-        throw new Error('Não autorizado.');
-      }
+      await Promise.all(
+        items.map(async item => {
+          const qty = item.quantity;
+          const productId = item.product;
+          const product = await Product.findOne({
+            where: { id: productId, companyId: company.id }
+          });
 
-      items.map(async item => {
-        console.log('--------------------------');
-        console.log(item);
-        console.log('--------------------------');
+          if (!product) {
+            const error = new Error('Produto inválido.');
+            error.code = 422;
+            throw error;
+          }
 
-        const qty = item.quantity;
-        const productId = item.product;
-        const product = await Product.findOne({ where: { id: productId } });
+          if (validator.isEmpty(qty.toString()) || qty <= 0) {
+            const error = new Error(
+              'Quantidade inválida no produto ' + product.name + '.'
+            );
+            error.code = 422;
+            throw error;
+          }
 
-        value += product.price * qty;
-      });
+          value += product.price * qty;
+        })
+      );
 
       const purchase = await Purchase.create({
         value: value,
@@ -61,18 +79,20 @@ module.exports = {
 
       const purchaseItems = [];
 
-      this.items.map(async item => {
-        const qty = item.quantity;
-        const productId = item.product;
+      await Promise.all(
+        items.map(async item => {
+          const qty = item.quantity;
+          const productId = item.product;
 
-        const purchaseItem = await PurchaseItem.create({
-          quantity: qty,
-          productId: productId,
-          purchaseId: purchase.id
-        });
+          const purchaseItem = await PurchaseItem.create({
+            quantity: qty,
+            productId: productId,
+            purchaseId: purchase.id
+          });
 
-        purchaseItems.push(purchaseItem);
-      });
+          purchaseItems.push(purchaseItem);
+        })
+      );
 
       return {
         ...purchase.dataValues,
@@ -91,48 +111,70 @@ module.exports = {
     const supplierId = purchaseInput.supplier;
     const companyId = purchaseInput.company;
     const user = req.user;
-    let value;
+    let value = 0;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
-      }
-
-      const supplier = await Supplier.findOne({ where: { id: supplierId } });
+      const supplier = await Supplier.findOne({
+        where: { id: supplierId, companyId: company.id }
+      });
 
       if (!supplier) {
-        throw new Error('Fornecedor inválido.');
+        const error = new Error('Fornecedor inválido.');
+        error.code = 422;
+        throw error;
       }
 
-      if (supplier.companyId !== company.id) {
-        throw new Error('Não autorizado.');
-      }
-
-      const purchase = Purchase.findOne({
+      const purchase = await Purchase.findOne({
         where: { id: id, companyId: companyId }
       });
 
       if (!purchase) {
-        throw new Error('Compra não encontrada.');
+        const error = new Error('Compra não encontrada.');
+        error.code = 404;
+        throw error;
       }
 
-      items.map(async item => {
-        const qty = item.quantity;
-        const productId = item.product;
-        const product = await Product.findOne({ where: { id: productId } });
+      await Promise.all(
+        items.map(async item => {
+          const qty = item.quantity;
+          const productId = item.product;
+          const product = await Product.findOne({
+            where: { id: productId, companyId: company.id }
+          });
 
-        value += product.price * qty;
-      });
+          if (!product) {
+            const error = new Error('Produto inválido.');
+            error.code = 422;
+            throw error;
+          }
+
+          if (validator.isEmpty(qty.toString()) || qty <= 0) {
+            const error = new Error(
+              'Quantidade inválida no produto ' + product.name + '.'
+            );
+            error.code = 422;
+            throw error;
+          }
+
+          value += product.price * qty;
+        })
+      );
 
       purchase.value = value;
       if (supplierId !== purchase.supplierId) {
@@ -146,7 +188,9 @@ module.exports = {
       });
 
       if (oldItems.length < 1) {
-        throw new Error('Items da compra não encontrado.');
+        const error = new Error('Items da compra não encontrados.');
+        error.code = 404;
+        throw error;
       }
 
       oldItems.map(async item => {
@@ -155,18 +199,20 @@ module.exports = {
 
       const purchaseItems = [];
 
-      items.map(async item => {
-        const qty = item.quantity;
-        const productId = item.product;
+      await Promise.all(
+        items.map(async item => {
+          const qty = item.quantity;
+          const productId = item.product;
 
-        const purchaseItem = await PurchaseItem.create({
-          quantity: qty,
-          productId: productId,
-          purchaseId: purchase.id
-        });
+          const purchaseItem = await PurchaseItem.create({
+            quantity: qty,
+            productId: productId,
+            purchaseId: purchase.id
+          });
 
-        purchaseItems.push(purchaseItem);
-      });
+          purchaseItems.push(purchaseItem);
+        })
+      );
 
       return {
         ...updatedPurchase.dataValues,
@@ -184,26 +230,30 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
-      }
-
-      const purchase = Purchase.findOne({
+      const purchase = await Purchase.findOne({
         where: { id: id, companyId: company.id }
       });
 
       if (!purchase) {
-        throw new Error('Compra não encontrada.');
+        const error = new Error('Compra não encontrada.');
+        error.code = 404;
+        throw error;
       }
 
       return !!purchase.destroy();
@@ -215,18 +265,20 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       const purchases = await Purchase.findAll({
@@ -236,6 +288,10 @@ module.exports = {
       return purchases.map(async purchase => {
         const purchaseItems = await PurchaseItem.findAll({
           where: { purchaseId: purchase.id }
+        });
+
+        const supplier = await Supplier.findOne({
+          where: { id: purchase.supplierId, companyId: company.id }
         });
 
         return {
@@ -255,18 +311,20 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       const purchase = await Purchase.findOne({
@@ -274,8 +332,14 @@ module.exports = {
       });
 
       if (!purchase) {
-        throw new Error('Compra não encontrada.');
+        const error = new Error('Compra não encontrada.');
+        error.code = 404;
+        throw error;
       }
+
+      const supplier = await Supplier.findOne({
+        where: { id: purchase.supplierId, companyId: company.id }
+      });
 
       const purchaseItems = await PurchaseItem.findAll({
         where: { purchaseId: purchase.id }

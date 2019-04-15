@@ -4,7 +4,7 @@ const { handleProduct } = require('./product');
 
 exports.handlePurchaseItems = async purchaseItems => {
   try {
-    return this.purchaseItems.map(async item => {
+    return purchaseItems.map(async item => {
       const product = await Product.findOne({
         where: { id: item.productId }
       });

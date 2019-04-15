@@ -1,3 +1,5 @@
+const validator = require('validator');
+
 const Sale = require('../../models/sale');
 const SaleItem = require('../../models/sale-item');
 const Product = require('../../models/product');
@@ -10,52 +12,88 @@ const { handleSaleItems } = require('../../helpers/sale-items');
 
 module.exports = {
   createSale: async ({ saleInput }, req) => {
-    const items = purchaseInput.items;
+    const items = saleInput.items;
     const discount = saleInput.discount;
     const percentage = saleInput.percentage;
     const online = saleInput.online;
     const disclosure = saleInput.disclosure;
-    const customerId = purchaseInput.customer;
-    const companyId = purchaseInput.company;
+    const customerId = saleInput.customer;
+    const companyId = saleInput.company;
     const user = req.user;
-    let value;
+    const errors = [];
+    let value = 0;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
+    }
+
+    if (validator.isEmpty(discount.toString()) || discount < 0) {
+      errors.push({ message: 'Desconto inválido.' });
+    }
+
+    if (validator.isEmpty(percentage.toString()) || percentage < 0) {
+      errors.push({ message: 'Porcentagem inválida.' });
+    }
+
+    if (validator.isEmpty(online.toString())) {
+      errors.push({ message: 'Online inválido.' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Dados inválidos.');
+      error.data = errors;
+      error.code = 422;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
-      }
-
-      const customer = await Customer.findOne({ where: { id: customerId } });
+      const customer = await Customer.findOne({
+        where: { id: customerId, companyId: company.id }
+      });
 
       if (!customer) {
-        throw new Error('Cliente inválido.');
+        const error = new Error('Cliente inválido.');
+        error.code = 422;
+        throw error;
       }
 
-      if (customer.companyId !== company.id) {
-        throw new Error('Não autorizado.');
-      }
+      await Promise.all(
+        items.map(async item => {
+          const qty = item.quantity;
+          const productId = item.product;
+          const product = await Product.findOne({
+            where: { id: productId, companyId: company.id }
+          });
 
-      items.map(async item => {
-        console.log('--------------------------');
-        console.log(item);
-        console.log('--------------------------');
+          if (!product) {
+            const error = new Error('Produto inválido.');
+            error.code = 422;
+            throw error;
+          }
 
-        const qty = item.quantity;
-        const productId = item.product;
-        const product = await Product.findOne({ where: { id: productId } });
+          if (validator.isEmpty(qty.toString()) || qty <= 0) {
+            const error = new Error(
+              'Quantidade inválida no produto ' + product.name + '.'
+            );
+            error.code = 422;
+            throw error;
+          }
 
-        value += product.price * qty;
-      });
+          value += product.price * qty;
+        })
+      );
 
       const sale = await Sale.create({
         value: value,
@@ -63,24 +101,26 @@ module.exports = {
         percentage: percentage,
         online: online,
         disclosure: disclosure,
-        customer: customer,
+        customerId: customerId,
         companyId: companyId
       });
 
       const saleItems = [];
 
-      this.items.map(async item => {
-        const qty = item.quantity;
-        const productId = item.product;
+      await Promise.all(
+        items.map(async item => {
+          const qty = item.quantity;
+          const productId = item.product;
 
-        const saleItem = await SaleItem.create({
-          quantity: qty,
-          productId: productId,
-          saleId: sale.id
-        });
+          const saleItem = await SaleItem.create({
+            quantity: qty,
+            productId: productId,
+            saleId: sale.id
+          });
 
-        saleItems.push(saleItem);
-      });
+          saleItems.push(saleItem);
+        })
+      );
 
       return {
         ...sale.dataValues,
@@ -95,56 +135,98 @@ module.exports = {
     }
   },
   updateSale: async ({ id, saleInput }, req) => {
-    const items = purchaseInput.items;
+    const items = saleInput.items;
     const discount = saleInput.discount;
     const percentage = saleInput.percentage;
     const online = saleInput.online;
     const disclosure = saleInput.disclosure;
-    const customerId = purchaseInput.customer;
-    const companyId = purchaseInput.company;
+    const customerId = saleInput.customer;
+    const companyId = saleInput.company;
     const user = req.user;
-    let value;
+    const errors = [];
+    let value = 0;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
+    }
+
+    if (validator.isEmpty(discount.toString()) || discount < 0) {
+      errors.push({ message: 'Desconto inválido.' });
+    }
+
+    if (validator.isEmpty(percentage.toString()) || percentage < 0) {
+      errors.push({ message: 'Porcentagem inválida.' });
+    }
+
+    if (validator.isEmpty(online.toString())) {
+      errors.push({ message: 'Online inválido.' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Dados inválidos.');
+      error.data = errors;
+      error.code = 422;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
-      }
-
-      const customer = await Customer.findOne({ where: { id: customerId } });
+      const customer = await Customer.findOne({
+        where: { id: customerId, companyId: company.id }
+      });
 
       if (!customer) {
-        throw new Error('Cliente inválido.');
+        const error = new Error('Cliente inválido.');
+        error.code = 422;
+        throw error;
       }
 
-      if (customer.companyId !== company.id) {
-        throw new Error('Não autorizado.');
-      }
-
-      const sale = Sale.findOne({
+      const sale = await Sale.findOne({
         where: { id: id, companyId: companyId }
       });
 
       if (!sale) {
-        throw new Error('Venda não encontrada.');
+        const error = new Error('Compra não encontrada.');
+        error.code = 404;
+        throw error;
       }
 
-      items.map(async item => {
-        const qty = item.quantity;
-        const productId = item.product;
-        const product = await Product.findOne({ where: { id: productId } });
+      await Promise.all(
+        items.map(async item => {
+          const qty = item.quantity;
+          const productId = item.product;
+          const product = await Product.findOne({
+            where: { id: productId, companyId: company.id }
+          });
 
-        value += product.price * qty;
-      });
+          if (!product) {
+            const error = new Error('Produto inválido.');
+            error.code = 422;
+            throw error;
+          }
+
+          if (validator.isEmpty(qty.toString()) || qty <= 0) {
+            const error = new Error(
+              'Quantidade inválida no produto ' + product.name + '.'
+            );
+            error.code = 422;
+            throw error;
+          }
+
+          value += product.price * qty;
+        })
+      );
 
       sale.value = value;
       sale.discount = discount;
@@ -162,7 +244,9 @@ module.exports = {
       });
 
       if (oldItems.length < 1) {
-        throw new Error('Items da venda não encontrado.');
+        const error = new Error('Items da venda não encontrados.');
+        error.code = 404;
+        throw error;
       }
 
       oldItems.map(async item => {
@@ -171,18 +255,20 @@ module.exports = {
 
       const saleItems = [];
 
-      items.map(async item => {
-        const qty = item.quantity;
-        const productId = item.product;
+      await Promise.all(
+        items.map(async item => {
+          const qty = item.quantity;
+          const productId = item.product;
 
-        const saleItem = await SaleItem.create({
-          quantity: qty,
-          productId: productId,
-          saleId: sale.id
-        });
+          const saleItem = await SaleItem.create({
+            quantity: qty,
+            productId: productId,
+            saleId: sale.id
+          });
 
-        saleItems.push(saleItem);
-      });
+          saleItems.push(saleItem);
+        })
+      );
 
       return {
         ...updatedSale.dataValues,
@@ -200,26 +286,30 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
-      }
-
-      const sale = Sale.findOne({
+      const sale = await Sale.findOne({
         where: { id: id, companyId: company.id }
       });
 
       if (!sale) {
-        throw new Error('Venda não encontrada.');
+        const error = new Error('Compra não encontrada.');
+        error.code = 404;
+        throw error;
       }
 
       return !!sale.destroy();
@@ -231,18 +321,24 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
       const company = await Company.findOne({ where: { id: companyId } });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Não autorizado.');
+        error.code = 403;
+        throw error;
       }
 
       const sales = await Sale.findAll({ where: { companyId: companyId } });
@@ -252,11 +348,15 @@ module.exports = {
           where: { saleId: sale.id }
         });
 
+        const customer = await Customer.findOne({
+          where: { id: sale.customerId, companyId: company.id }
+        });
+
         return {
           ...sale.dataValues,
           createdAt: dateToString(sale.createdAt),
           updatedAt: dateToString(sale.updatedAt),
-          supplier: handleSupplier(supplier),
+          customer: handleCustomer(customer),
           company: handleCompany(company),
           items: handleSaleItems([...saleItems])
         };
@@ -269,18 +369,20 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       const sale = await Sale.findOne({
@@ -288,8 +390,14 @@ module.exports = {
       });
 
       if (!sale) {
-        throw new Error('Venda não encontrada.');
+        const error = new Error('Compra não encontrada.');
+        error.code = 404;
+        throw error;
       }
+
+      const customer = await Customer.findOne({
+        where: { id: sale.customerId, companyId: company.id }
+      });
 
       const saleItems = await SaleItem.findAll({ where: { saleId: sale.id } });
 
@@ -297,7 +405,7 @@ module.exports = {
         ...sale.dataValues,
         createdAt: dateToString(sale.createdAt),
         updatedAt: dateToString(sale.updatedAt),
-        supplier: handleSupplier(supplier),
+        customer: handleCustomer(customer),
         company: handleCompany(company),
         items: handleSaleItems([...saleItems])
       };

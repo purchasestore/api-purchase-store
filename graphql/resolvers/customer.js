@@ -1,3 +1,5 @@
+const validator = require('validator');
+
 const Company = require('../../models/company');
 const Customer = require('../../models/customer');
 const { dateToString } = require('../../helpers/date');
@@ -10,20 +12,42 @@ module.exports = {
     const cellphone = customerInput.cellphone;
     const companyId = customerInput.company;
     const user = req.user;
+    const errors = [];
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
+    }
+
+    if (validator.isEmpty(name)) {
+      errors.push({ message: 'Nome inválido.' });
+    }
+
+    if (!validator.isEmail(email)) {
+      errors.push({ message: 'E-mail inválido.' });
+    }
+
+    if (validator.isEmpty(cellphone)) {
+      errors.push({ message: 'Celular inválido.' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Dados inválidos.');
+      error.data = errors;
+      error.code = 422;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       const customer = await Customer.create({
@@ -49,22 +73,42 @@ module.exports = {
     const cellphone = customerInput.cellphone;
     const companyId = customerInput.company;
     const user = req.user;
+    const errors = [];
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
+    }
+
+    if (validator.isEmpty(name)) {
+      errors.push({ message: 'Nome inválido.' });
+    }
+
+    if (!validator.isEmail(email)) {
+      errors.push({ message: 'E-mail inválido.' });
+    }
+
+    if (validator.isEmpty(cellphone)) {
+      errors.push({ message: 'Celular inválido.' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Dados inválidos.');
+      error.data = errors;
+      error.code = 422;
+      throw error;
     }
 
     try {
       const company = await Company.findOne({
-        where: { id: companyId }
+        where: { id: companyId, userId: user.id }
       });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       const customer = await Customer.findOne({
@@ -72,7 +116,9 @@ module.exports = {
       });
 
       if (!customer) {
-        throw new Error('Cliente não encontrado.');
+        const error = new Error('Cliente não encontrado.');
+        error.code = 404;
+        throw error;
       }
 
       customer.name = name;
@@ -95,20 +141,20 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
       const company = await Company.findOne({
-        where: { id: companyId }
+        where: { id: companyId, userId: user.id }
       });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       const customer = await Customer.findOne({
@@ -116,7 +162,9 @@ module.exports = {
       });
 
       if (!customer) {
-        throw new Error('Cliente não encontrado.');
+        const error = new Error('Cliente não encontrado.');
+        error.code = 404;
+        throw error;
       }
 
       return !!customer.destroy();
@@ -128,21 +176,23 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
-      }
-
-      const customers = await Customers.findAll({
+      const customers = await Customer.findAll({
         where: { companyId: company.id }
       });
 
@@ -160,18 +210,20 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       const customer = await Customer.findOne({
@@ -179,7 +231,9 @@ module.exports = {
       });
 
       if (!customer) {
-        throw new Error('Cliente não encontrado.');
+        const error = new Error('Cliente não encontrado.');
+        error.code = 404;
+        throw error;
       }
 
       return {

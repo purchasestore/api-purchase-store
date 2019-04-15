@@ -1,4 +1,5 @@
 const Sequelize = require('sequelize');
+const validator = require('validator');
 
 const Company = require('../../models/company');
 const Supplier = require('../../models/supplier');
@@ -20,20 +21,65 @@ module.exports = {
     const note = supplierInput.note;
     const companyId = supplierInput.company;
     const user = req.user;
+    const errors = [];
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
+    }
+
+    if (validator.isEmpty(name)) {
+      errors.push({ message: 'Nome inválido.' });
+    }
+
+    console.log('-----------------------------------');
+    console.log(cnpj.replace(/\D/g, ''));
+    console.log('-----------------------------------');
+
+    if (
+      !validator.isEmpty(cnpj) &&
+      !validator.isLength(cnpj.replace(/\D/g, ''), { min: 14, max: 14 })
+    ) {
+      errors.push({ message: 'CNPJ inválido.' });
+    }
+
+    if (!validator.isEmail(email)) {
+      errors.push({ message: 'E-mail inválido.' });
+    }
+
+    if (validator.isEmpty(cellphone)) {
+      errors.push({ message: 'Celular inválido.' });
+    }
+
+    if (validator.isEmpty(address)) {
+      errors.push({ message: 'Endereço inválido.' });
+    }
+
+    if (validator.isEmpty(city)) {
+      errors.push({ message: 'Cidade inválido.' });
+    }
+
+    if (validator.isEmpty(state)) {
+      errors.push({ message: 'Estado inválido.' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Dados inválidos.');
+      error.data = errors;
+      error.code = 422;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       const existingSupplier = await Supplier.findOne({
@@ -41,7 +87,9 @@ module.exports = {
       });
 
       if (existingSupplier) {
-        throw new Error('Fornecedor com CNPJ informado já existe.');
+        const error = new Error('Fornecedor com CNPJ informado já existe.');
+        error.code = 422;
+        throw error;
       }
 
       const supplier = await Supplier.create({
@@ -79,22 +127,61 @@ module.exports = {
     const note = supplierInput.note;
     const companyId = supplierInput.company;
     const user = req.user;
+    const errors = [];
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
+    }
+
+    if (validator.isEmpty(name)) {
+      errors.push({ message: 'Nome inválido.' });
+    }
+
+    if (
+      !validator.isEmpty(cnpj) &&
+      !validator.isLength(cnpj.replace(/\D/g, ''), { min: 14, max: 14 })
+    ) {
+      errors.push({ message: 'CNPJ inválido.' });
+    }
+
+    if (!validator.isEmail(email)) {
+      errors.push({ message: 'E-mail inválido.' });
+    }
+
+    if (validator.isEmpty(cellphone)) {
+      errors.push({ message: 'Celular inválido.' });
+    }
+
+    if (validator.isEmpty(address)) {
+      errors.push({ message: 'Endereço inválido.' });
+    }
+
+    if (validator.isEmpty(city)) {
+      errors.push({ message: 'Cidade inválido.' });
+    }
+
+    if (validator.isEmpty(state)) {
+      errors.push({ message: 'Estado inválido.' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Dados inválidos.');
+      error.data = errors;
+      error.code = 422;
+      throw error;
     }
 
     try {
       const company = await Company.findOne({
-        where: { id: companyId }
+        where: { id: companyId, userId: user.id }
       });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       const supplier = await Supplier.findOne({
@@ -102,7 +189,9 @@ module.exports = {
       });
 
       if (!supplier) {
-        throw new Error('Fornecedor não encontrado.');
+        const error = new Error('Fornecedor não encontrado.');
+        error.code = 404;
+        throw error;
       }
 
       const existingSupplier = await Supplier.findOne({
@@ -115,7 +204,9 @@ module.exports = {
       });
 
       if (existingSupplier) {
-        throw new Error('Fornecedor com CNPJ informado já existe.');
+        const error = new Error('Fornecedor com CNPJ informado já existe.');
+        error.code = 422;
+        throw error;
       }
 
       supplier.name = name;
@@ -144,20 +235,20 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
       const company = await Company.findOne({
-        where: { id: companyId }
+        where: { id: companyId, userId: user.id }
       });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       const supplier = await Supplier.findOne({
@@ -165,7 +256,9 @@ module.exports = {
       });
 
       if (!supplier) {
-        throw new Error('Fornecedor não encontrado.');
+        const error = new Error('Fornecedor não encontrado.');
+        error.code = 404;
+        throw error;
       }
 
       return !!supplier.destroy();
@@ -177,18 +270,20 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       const suppliers = await Supplier.findAll({
@@ -209,18 +304,20 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
-      const company = await Company.findOne({ where: { id: companyId } });
+      const company = await Company.findOne({
+        where: { id: companyId, userId: user.id }
+      });
 
       if (!company) {
-        throw new Error('Empresa inválida.');
-      }
-
-      if (company.userId !== user.id) {
-        throw new Error('Não autorizado.');
+        const error = new Error('Empresa inválida.');
+        error.code = 422;
+        throw error;
       }
 
       const supplier = await Supplier.findOne({
@@ -228,7 +325,9 @@ module.exports = {
       });
 
       if (!supplier) {
-        throw new Error('Fornecedor não encontrado.');
+        const error = new Error('Fornecedor não encontrado.');
+        error.code = 404;
+        throw error;
       }
 
       return {

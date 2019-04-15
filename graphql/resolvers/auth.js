@@ -1,27 +1,60 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const validator = require('validator');
 
 const User = require('../../models/user');
 const { dateToString } = require('../../helpers/date');
 
 module.exports = {
-  createUser: async args => {
-    const email = args.userInput.email;
-    const name = args.userInput.name;
+  createUser: async ({ userInput }) => {
+    const email = userInput.email;
+    const name = userInput.name;
+    const lastname = userInput.lastname;
+    const password = userInput.password;
+    const errors = [];
+
+    if (!validator.isEmail(email)) {
+      errors.push({ message: 'E-mail inválido.' });
+    }
+
+    if (validator.isEmpty(name)) {
+      errors.push({ message: 'Nome inválido.' });
+    }
+
+    if (validator.isEmpty(lastname)) {
+      errors.push({ message: 'Sobrenome inválido.' });
+    }
+
+    if (
+      validator.isEmpty(password) ||
+      !validator.isLength(password, { min: 8 })
+    ) {
+      errors.push({ message: 'A senha precisa ter no mínimo 8 caracteres.' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Dados inválidos.');
+      error.data = errors;
+      error.code = 422;
+      throw error;
+    }
 
     try {
       const existingUser = await User.findOne({ where: { email: email } });
 
       if (existingUser) {
-        throw new Error('Usuário com e-mail inserido já existe.');
+        const error = new Error('Usuário com e-mail inserido já existe.');
+        error.code = 422;
+        throw error;
       }
 
-      const hashedPassowrd = await bcrypt.hash(args.userInput.password, 12);
+      const hashedPassowrd = await bcrypt.hash(userInput.password, 12);
 
       const user = await User.create({
         email: email,
         password: hashedPassowrd,
-        name: name
+        name: name,
+        lastname: lastname
       });
 
       return {
@@ -34,18 +67,81 @@ module.exports = {
       throw err;
     }
   },
-  updateUser: async ({ name, email }, req) => {
+  updateUser: async ({ name, lastname }, req) => {
     const user = req.user;
+    const errors = [];
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
+    }
+
+    if (validator.isEmpty(name)) {
+      errors.push({ message: 'Nome inválido.' });
+    }
+
+    if (validator.isEmpty(lastname)) {
+      errors.push({ message: 'Sobrenome inválido.' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Dados inválidos.');
+      error.data = errors;
+      error.code = 422;
+      throw error;
     }
 
     user.name = name;
-    user.email = email;
+    user.lastname = lastname;
 
     try {
       const updatedUser = await user.save();
+
+      return {
+        ...updatedUser.dataValues,
+        password: null,
+        createdAt: dateToString(updatedUser.createdAt),
+        updatedAt: dateToString(updatedUser.updatedAt)
+      };
+    } catch (err) {
+      throw err;
+    }
+  },
+  updateEmail: async ({ email }, req) => {
+    const user = req.user;
+    const errors = [];
+
+    if (!user) {
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
+    }
+
+    if (!validator.isEmail(email)) {
+      errors.push({ message: 'E-mail inválido.' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Dados inválidos.');
+      error.data = errors;
+      error.code = 422;
+      throw error;
+    }
+
+    try {
+      const existingUser = await User.findOne({ where: { email: email } });
+
+      if (existingUser) {
+        const error = new Error('Usuário com e-mail inserido já existe.');
+        error.code = 422;
+        throw error;
+      }
+
+      user.email = email;
+
+      const updatedUser = await user.save();
+
       return {
         ...updatedUser.dataValues,
         password: null,
@@ -58,9 +154,26 @@ module.exports = {
   },
   updatePassword: async ({ password }, req) => {
     const user = req.user;
+    const errors = [];
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
+    }
+
+    if (
+      validator.isEmpty(password) ||
+      !validator.isLength(password, { min: 8 })
+    ) {
+      errors.push({ message: 'A senha precisa ter no mínimo 8 caracteres.' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Dados inválidos.');
+      error.data = errors;
+      error.code = 422;
+      throw error;
     }
 
     try {
@@ -84,7 +197,9 @@ module.exports = {
     const user = req.user;
 
     if (!user) {
-      throw new Error('Não autenticado.');
+      const error = new Error('Não autenticado.');
+      error.code = 401;
+      throw error;
     }
 
     try {
