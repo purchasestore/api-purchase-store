@@ -137,19 +137,19 @@ module.exports = buildSchema(`
     state: String!
     landmark: String
     note: String
-    company: String!
+    company: ID!
   }
 
   input CustomerInput {
     name: String!
     email: String!
     cellphone: String!
-    company: String!
+    company: ID!
   }
 
   input CategoryInput {
     name: String!
-    company: String!
+    company: ID!
   }
 
   input ProductInput {
@@ -158,19 +158,19 @@ module.exports = buildSchema(`
     code: String!
     imageUrl: String
     highlight: Boolean
-    category: String!
-    company: String!
+    category: ID!
+    company: ID!
   }
 
   input PurchaseInput {
     items: [PurchaseItemInput!]!
-    supplier: String!
-    company: String!
+    supplier: ID!
+    company: ID!
   }
 
   input PurchaseItemInput {
     quantity: Int!
-    product: String!
+    product: ID!
   }
 
   input SaleInput {
@@ -179,13 +179,13 @@ module.exports = buildSchema(`
     percentage: Float!
     online: Boolean!
     disclosure: Boolean!
-    customer: String!
-    company: String!
+    customer: ID!
+    company: ID!
   }
 
   input SaleItemInput {
     quantity: Int!
-    product: String!
+    product: ID!
   }
 
   type RootQuery {
