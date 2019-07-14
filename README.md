@@ -26,7 +26,7 @@ npm start
 
 ## Authors
 
-* **Matheus Puppe** - *Project Manager* - [puppe1990](https://github.com/puppe1990)
+* **Matheus Puppe** - *Project Manager/Developer* - [puppe1990](https://github.com/puppe1990)
 * **Matheus Valandro** - *Developer* - [msvalandro](https://github.com/msvalandro)
 
 ## License
