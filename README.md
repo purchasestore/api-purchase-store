@@ -1,6 +1,6 @@
 # API Purchase Store
 
-This is an API to manage inventory control and many other features of Purchase Store. Can be cloned and used as reference to similar applications of any other store
+This is an API to manage inventory control and many other features of Purchase Store. Can be cloned and used as reference to similar applications of any other store.
 
 ## Running
 
