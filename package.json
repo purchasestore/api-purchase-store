@@ -16,7 +16,7 @@
     "jsonwebtoken": "^8.5.0",
     "mysql2": "^1.6.4",
     "sequelize": "^5.15.1",
-    "validator": "^10.11.0"
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "nodemon": "^1.18.9"
